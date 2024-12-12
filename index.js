@@ -47,6 +47,10 @@ const usersCollection = db.collection('myCollection');
 // Routes
 
 app.get("/", (req, res) => {
+    res.render("login");
+});
+
+app.get("/home", (req, res) => {
     res.render("home");
 });
 
@@ -82,10 +86,6 @@ app.post("/register", async (req, res) => {
     }
 });
 
-// Login route (you can create the login.ejs file for the front-end)
-app.get("/login", (req, res) => {
-    res.render("login");
-});
 
 app.get("/paris", (req, res) => {
     res.render("paris");
@@ -129,7 +129,7 @@ app.get("/wanttogo", (req, res) => {
 });
 
 // Login POST request
-app.post("/login", async (req, res) => {
+app.post("/", async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
