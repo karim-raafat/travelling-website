@@ -38,5 +38,22 @@
             </form>
         </div>
     </nav>
+    <% if (message) { %>
+        <h1><%= message %></h1>
+    <% } else { %>
+        <h1>Search Results:</h1>
+        <div class="search-results">
+            <% results.forEach(result => { %>
+                <div class="container1">
+                    <img id="image" src="/<%= result.slug %>.png"width="193" height="300">
+                    <br>
+                    <label id="label1" class="ml-4 my-2"><%= result.name %></label>
+                    <br>
+                    <button onclick="location.href = '/<%= result.slug %>'" id="<%= result.slug %>" class="btn btn-secondary ml-3">View</button>
+                </div>
+            <% }); %>
+        </div>
+    <% } %>
+
 </body>
 </html>
