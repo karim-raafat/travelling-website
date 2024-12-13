@@ -167,3 +167,35 @@ app.get("/home", (req, res) => {
 app.listen(process.env.PORT || 3000, () => {
     console.log("Web Server is listening at port " + (process.env.PORT || 3000));
 });
+
+
+// Route to handle search functionality
+app.post('/search', async (req, res) => {
+    const searchQuery = req.body.Search; // Get the search query from the search form textbox
+    if (!searchQuery) {
+        return res.status(400).send('Search query is required');
+    }
+
+    try {
+        await client.connect(); // Connect to the database
+
+        const db = client.db('myDB'); // Select the database
+        const collection = db.collection('destinations'); // Select the collection
+
+        // Perform the search operation
+        const results = await collection.find({
+            name: { $regex: searchQuery, $options: 'i' } // Case-insensitive substring match
+        }).toArray();
+
+        if (results.length === 0) {
+            return res.status(404).render('searchResults', { results: [], message: 'Destination not found' });
+        }
+
+        res.render('searchResults', { results, message: null });
+    } catch (err) {
+        console.error('Error during search:', err);
+        res.status(500).send('Internal Server Error');
+    } finally {
+        client.close(); // Close the database connection
+    }
+});
