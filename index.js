@@ -6,6 +6,7 @@ import session from "express-session";
 
 const app = express();
 const __dirname = path.resolve();
+let User= null;
 
 // Set up EJS for templating
 app.set("view engine", "ejs");
@@ -76,7 +77,8 @@ app.post("/register", async (req, res) => {
         }
 
         // Insert new user into the database
-        await usersCollection.insertOne({ username, password });
+        await usersCollection.insertOne({ username, password, list : [] });
+        
 
         // Redirect to login page after successful registration
         res.redirect("/login?message=Registration successful. Please log in.");
@@ -87,7 +89,7 @@ app.post("/register", async (req, res) => {
 });
 
 
-app.get("/paris", (req, res) => {
+app.get("/paris",(req, res) => {
     res.render("paris");
 });
 
@@ -123,22 +125,33 @@ app.get("/bali", (req, res) => {
     res.render("bali");
 });
 
-app.get("/wanttogo", (req, res) => {
-    //add code for calling the wanttogo destination from database
-    res.render("wanttogo");
-});
+app.get("/wanttogo", async (req, res) => {
+   
+    try {
+        
 
+        // Render the want to go page with the user's list
+        res.render("wanttogo", { list: [] }); // Pass the list to the view
+    } catch (err) {
+        console.error("Error fetching user list:", err);
+        res.status(500).send("Internal Server Error");
+    }
+});
+ 
 // Login POST request
 app.post("/", async (req, res) => {
     const { username, password } = req.body;
+    User = username;
 
     if (!username || !password) {
         return res.send("Both fields are required.");
     }
 
     try {
+        
         // Find the user in the database
         const user = await usersCollection.findOne({ username });
+        
 
         // Check if user exists and password is correct
         if (!user || user.password !== password) {
@@ -199,3 +212,37 @@ app.post('/search', async (req, res) => {
         client.close(); // Close the database connection
     }
 });
+app.post("/add-to-wanttogo", async (req, res) => {
+    const pageTitle = req.body.pageTitle; // Get the title of the page from the request body
+
+    try {
+        await client.connect(); // Connect to the database
+
+        const db = client.db('myDB'); // Select the database
+        const collection = db.collection('myCollection'); // Select the collection
+
+        // Check if the page title already exists in the user's list
+        
+        if (User.list.includes(pageTitle)) {
+            return res.send("This page title is already in your Want-to-Go list.");
+        }
+
+        // Update the user's document to add the page title to their list
+        await collection.updateOne(
+            { username: User },
+            { $push: { list: pageTitle } } 
+        );
+
+        res.status(200).send("Destination added successfully."); // Send a success response
+    } catch (err) {
+        console.error("Error adding destination:", err);
+        res.status(500).send("Internal Server Error");
+    } finally {
+        await client.close(); // Close the database connection
+    }
+});
+
+
+
+
+
