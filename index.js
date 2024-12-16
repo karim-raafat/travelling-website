@@ -126,18 +126,33 @@ app.get("/bali", (req, res) => {
 });
 
 app.get("/wanttogo", async (req, res) => {
-   
     try {
-        
+        const user = req.session.user;
+        if (!user) {
+            return res.redirect("/login");  // Redirect to login page if not logged in
+        }
 
-        // Render the want to go page with the user's list
-        res.render("wanttogo", { list: [] }); // Pass the list to the view
+        // Connect to the database
+        await client.connect();
+        const db = client.db('myDB');
+        const usersCollection = db.collection('myCollection');
+
+        // Find the user document by their username
+        const existingUser = await usersCollection.findOne({ username: user.username });
+
+        // Check if the user has any destinations in their "Want-to-Go" list
+        const list = existingUser ? existingUser.list : [];
+
+        // Render the view and pass the list
+        res.render("wanttogo", { list });
+
     } catch (err) {
         console.error("Error fetching user list:", err);
         res.status(500).send("Internal Server Error");
+    } finally {
+        await client.close();
     }
 });
- 
 // Login POST request
 app.post("/", async (req, res) => {
     const { username, password } = req.body;
@@ -212,37 +227,43 @@ app.post('/search', async (req, res) => {
         client.close(); // Close the database connection
     }
 });
+// Modified /add-to-wanttogo route
 app.post("/add-to-wanttogo", async (req, res) => {
     const pageTitle = req.body.pageTitle; // Get the title of the page from the request body
-
     try {
-        await client.connect(); // Connect to the database
-
-        const db = client.db('myDB'); // Select the database
-        const collection = db.collection('myCollection'); // Select the collection
-
-        // Check if the page title already exists in the user's list
-        
-        if (User.list.includes(pageTitle)) {
-            return res.send("This page title is already in your Want-to-Go list.");
+        // Ensure the user is logged in
+        const user = req.session.user;
+        if (!user) {
+            return res.status(401).send("You need to log in first.");
         }
 
-        // Update the user's document to add the page title to their list
-        await collection.updateOne(
-            { username: User },
-            { $push: { list: pageTitle } } 
+        // Connect to the database
+        await client.connect();
+        const db = client.db('myDB');
+        const usersCollection = db.collection('myCollection');
+
+        // Find the user document by their username
+        const existingUser = await usersCollection.findOne({ username: user.username });
+        if (!existingUser) {
+            return res.status(404).send("User not found.");
+        }
+
+        // Check if the pageTitle is already in the user's want-to-go list
+        if (existingUser.list.includes(pageTitle)) {
+            return res.status(400).send("This destination is already in your Want-to-Go List.");
+        }
+
+        // Update the user's document to add the new title to their list
+        await usersCollection.updateOne(
+            { username: user.username },
+            { $push: { list: pageTitle } }
         );
 
-        res.status(200).send("Destination added successfully."); // Send a success response
+        res.status(200).send("Destination added to your Want-to-Go List.");
     } catch (err) {
         console.error("Error adding destination:", err);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send("Internal Server Error.");
     } finally {
-        await client.close(); // Close the database connection
+        await client.close(); // Ensure we close the MongoDB connection
     }
 });
-
-
-
-
-
