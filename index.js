@@ -332,7 +332,7 @@ app.post('/search', async (req, res) => {
 
         // Perform the search operation
         const results = await collection.find({
-            name: { $regex: searchQuery, $options: 'i' } /
+            name: { $regex: searchQuery, $options: 'i' }
         }).toArray();
 
         if (results.length === 0) {
