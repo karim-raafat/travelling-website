@@ -143,7 +143,7 @@ app.get("/wanttogo", async (req, res) => {
         // Ensure the user's `list` attribute exists
         const destinations = user.list || [];
 
-    try {
+
         // Render the template with the destinations
         res.render("wanttogo", { destinations });
     } catch (err) {
@@ -260,5 +260,5 @@ app.post('/search', async (req, res) => {
 // Start the server
 app.listen(process.env.PORT || 3000, () => {
     console.log("Web Server is listening at port " + (process.env.PORT || 3000));
-   
+
 });
