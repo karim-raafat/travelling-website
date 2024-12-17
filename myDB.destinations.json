@@ -1,0 +1,44 @@
+[
+  {
+    "_id": {
+      "$oid": "675c3e0910a5d20c7ea1b67e"
+    },
+    "name": "Paris",
+    "slug": "paris"
+  },
+  {
+    "_id": {
+      "$oid": "675c512f10a5d20c7ea1b684"
+    },
+    "name": "Bali Island",
+    "slug": "bali"
+  },
+  {
+    "_id": {
+      "$oid": "675c515210a5d20c7ea1b686"
+    },
+    "name": "Santorini Island",
+    "slug": "santorini"
+  },
+  {
+    "_id": {
+      "$oid": "675c516b10a5d20c7ea1b688"
+    },
+    "name": "Rome",
+    "slug": "rome"
+  },
+  {
+    "_id": {
+      "$oid": "675c51dc10a5d20c7ea1b68a"
+    },
+    "name": "Annapurna Circuit",
+    "slug": "annapurna"
+  },
+  {
+    "_id": {
+      "$oid": "675c523310a5d20c7ea1b68c"
+    },
+    "name": "Inca Trail to Machu Picchu",
+    "slug": "inca"
+  }
+]
