@@ -9,6 +9,9 @@ import session from "express-session";
 const app = express();
 const __dirname = path.resolve();
 
+let User = null;
+
+
 app.use(express.json());
 // Set up EJS for templating
 app.set("view engine", "ejs");
@@ -81,6 +84,7 @@ app.post("/register", async (req, res) => {
         // Insert new user into the database
         await usersCollection.insertOne({ username, password, list: [] });
 
+
         // Redirect to login page after successful registration
         res.redirect("/?message=Registration successful. Please log in.");
     } catch (err) {
@@ -127,6 +131,7 @@ app.get("/bali", (req, res) => {
 });
 
 app.get("/wanttogo", async (req, res) => {
+
     if (!req.session.user) {
         return res.redirect("/"); // Redirect to login if user is not logged in
     }
@@ -138,6 +143,7 @@ app.get("/wanttogo", async (req, res) => {
         // Ensure the user's `list` attribute exists
         const destinations = user.list || [];
 
+    try {
         // Render the template with the destinations
         res.render("wanttogo", { destinations });
     } catch (err) {
@@ -157,6 +163,7 @@ app.post("/", async (req, res) => {
     try {
         // Find the user in the database
         const user = await usersCollection.findOne({ username });
+
 
         // Check if user exists and password is correct
         if (!user || user.password !== password) {
@@ -250,12 +257,8 @@ app.post('/search', async (req, res) => {
     }
 });
 
-
-
-
-
-
 // Start the server
 app.listen(process.env.PORT || 3000, () => {
     console.log("Web Server is listening at port " + (process.env.PORT || 3000));
+   
 });
