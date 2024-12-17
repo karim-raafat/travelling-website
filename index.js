@@ -17,6 +17,7 @@ app.use(express.json());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "/public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Set up body-parser to handle form data
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -193,7 +194,6 @@ app.get("/home", (req, res) => {
 
 //Handling the backend for adding the destination
 app.post("/add-to-want-to-go-list", async (req, res) => {
-    console.log('pressed');
     if (!req.session.user) {
         return res.status(401).json({ success: false, message: "User not logged in." });
     }
