@@ -14,6 +14,37 @@
             text-align: center;
             -webkit-text-stroke: 1px blue;
         }
+
+        .search-results {
+            display: flex;
+            flex-wrap: wrap;
+            /* Allows wrapping if there are many items */
+            justify-content: center;
+            /* Centers items horizontally */
+            gap: 20px;
+            /* Adds space between items */
+            margin: 20px;
+            /* Adds some margin to the container */
+        }
+
+        .container1 {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            /* Optional background for better visibility */
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        #image {
+            border-radius: 8px;
+            /* Rounds image corners */
+        }
+
+        #label1 {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
     </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,12 +87,11 @@
                         </label>
                         <br>
                         <button onclick="location.href = '/<%= result.slug %>'" id="<%= result.slug %>"
-                            class="btn btn-secondary ml-3">View</button>
+                            class="btn btn-secondary mt-2">View</button>
                     </div>
                     <% }); %>
             </div>
             <% } %>
-
 </body>
 
 </html>

@@ -142,6 +142,8 @@ app.get("/wanttogo", async (req, res) => {
 
         // Ensure the user's `list` attribute exists
         const destinations = user.list || [];
+
+
         // Render the template with the destinations
         res.render("wanttogo", { destinations });
     } catch (err) {
