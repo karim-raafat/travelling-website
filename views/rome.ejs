@@ -85,38 +85,10 @@
         its archaeological and art treasures, as well as for the charm of its unique traditions, the beauty of its
         panoramic views, and the majesty of its magnificent villas.
     </div>
-    <button id="add-to-list" class="btn-want-to-go" data-destination="Rome">Add to Want-to-Go List</button>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const button = document.getElementById("add-to-list");
-
-            button.addEventListener("click", () => {
-                const destination = button.getAttribute("data-destination");
-
-                // Send a POST request to the server to add the destination
-                fetch("/add-to-want-to-go-list", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ destination }),
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.success) {
-                            alert(`${destination} has been added to your Want-to-Go List!`);
-                        } else {
-                            alert(`Error: ${data.message}`);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error:", error);
-                        alert("An unexpected error occurred.");
-                    });
-            });
-        });
-
-    </script>
+    <div class="wanttogo">
+        <button class="add-to-list btn btn-secondary ml-3" data-destination="Rome">Add to Want-to-Go List</button>
+    </div>
+    <script src="/scripts.js" defer></script>
     </div>
     <div class="video">
         <iframe width="480" height="360" src="https://www.youtube.com/embed/gBFbAlqLtLs" title="Rome Video"
