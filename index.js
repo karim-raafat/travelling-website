@@ -4,10 +4,15 @@ import { MongoClient } from "mongodb";
 import bodyParser from "body-parser";
 import session from "express-session";
 
+
+
 const app = express();
 const __dirname = path.resolve();
+
 let User = null;
 
+
+app.use(express.json());
 // Set up EJS for templating
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -81,7 +86,7 @@ app.post("/register", async (req, res) => {
 
 
         // Redirect to login page after successful registration
-        res.redirect("/login?message=Registration successful. Please log in.");
+        res.redirect("/?message=Registration successful. Please log in.");
     } catch (err) {
         console.error("Error registering user:", err);
         res.send("There was an error with the registration process.");
@@ -127,28 +132,35 @@ app.get("/bali", (req, res) => {
 
 app.get("/wanttogo", async (req, res) => {
 
+    if (!req.session.user) {
+        return res.redirect("/"); // Redirect to login if user is not logged in
+    }
+
     try {
+        // Retrieve the user's data from the database
+        const user = await usersCollection.findOne({ username: req.session.user.username });
 
+        // Ensure the user's `list` attribute exists
+        const destinations = user.list || [];
 
-        // Render the want to go page with the user's list
-        res.render("wanttogo", { list: [] }); // Pass the list to the view
+    try {
+        // Render the template with the destinations
+        res.render("wanttogo", { destinations });
     } catch (err) {
-        console.error("Error fetching user list:", err);
-        res.status(500).send("Internal Server Error");
+        console.error("Error retrieving Want-to-Go list:", err);
+        res.send("An error occurred while retrieving your list.");
     }
 });
 
 // Login POST request
 app.post("/", async (req, res) => {
     const { username, password } = req.body;
-    User = username;
 
     if (!username || !password) {
         return res.send("Both fields are required.");
     }
 
     try {
-
         // Find the user in the database
         const user = await usersCollection.findOne({ username });
 
@@ -176,13 +188,45 @@ app.get("/home", (req, res) => {
     res.render("home", { user: req.session.user });
 });
 
-// Start the server
-app.listen(process.env.PORT || 3000, () => {
-    console.log("Web Server is listening at port " + (process.env.PORT || 3000));
+
+
+
+//Handling the backend for adding the destination
+app.post("/add-to-want-to-go-list", async (req, res) => {
+    console.log('pressed');
+    if (!req.session.user) {
+        return res.status(401).json({ success: false, message: "User not logged in." });
+    }
+
+    const destination = req.body.destination;
+
+    if (!destination) {
+        return res.status(400).json({ success: false, message: "Destination is required. " + req.body });
+    }
+
+    try {
+        // Find the logged-in user's record
+        const username = req.session.user.username;
+        const user = await usersCollection.findOne({ username });
+
+        // Check if destination is already in the list
+        if (user.list.includes(destination)) {
+            return res.status(400).json({ success: false, message: "Destination already in the list." });
+        }
+
+        // Update user's list in the database
+        await usersCollection.updateOne(
+            { username },
+            { $push: { list: destination } }
+        );
+
+        res.json({ success: true, message: "Destination added successfully." });
+    } catch (err) {
+        console.error("Error adding destination:", err);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
 });
 
-
-// Route to handle search functionality
 app.post('/search', async (req, res) => {
     const searchQuery = req.body.Search; // Get the search query from the search form textbox
     if (!searchQuery) {
@@ -212,32 +256,9 @@ app.post('/search', async (req, res) => {
         client.close(); // Close the database connection
     }
 });
-app.post("/add-to-wanttogo", async (req, res) => {
-    const pageTitle = req.body.pageTitle; // Get the title of the page from the request body
 
-    try {
-        await client.connect(); // Connect to the database
-
-        const db = client.db('myDB'); // Select the database
-        const collection = db.collection('myCollection'); // Select the collection
-
-        // Check if the page title already exists in the user's list
-
-        if (User.list.includes(pageTitle)) {
-            return res.send("This page title is already in your Want-to-Go list.");
-        }
-
-        // Update the user's document to add the page title to their list
-        await collection.updateOne(
-            { username: User },
-            { $push: { list: pageTitle } }
-        );
-
-        res.status(200).send("Destination added successfully."); // Send a success response
-    } catch (err) {
-        console.error("Error adding destination:", err);
-        res.status(500).send("Internal Server Error");
-    } finally {
-        await client.close(); // Close the database connection
-    }
+// Start the server
+app.listen(process.env.PORT || 3000, () => {
+    console.log("Web Server is listening at port " + (process.env.PORT || 3000));
+   
 });
