@@ -1,56 +1,72 @@
 import express from "express";
 import path from "path";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import bodyParser from "body-parser";
 import session from "express-session";
-
-
+import fs from "fs";
 
 const app = express();
 const __dirname = path.resolve();
 
-let User = null;
-
-
 app.use(express.json());
-// Set up EJS for templating
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "/public")));
-app.use(express.static(path.join(__dirname, "public")));
-
-// Set up body-parser to handle form data
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+    session({
+        secret: "your-secret-key",
+        resave: false,
+        saveUninitialized: true,
+    })
+);
 
-// Set up express-session for managing sessions
-app.use(session({
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: true
-}));
-
-// MongoDB setup (use IPv4 address)
-const uri = "mongodb://127.0.0.1:27017/myDB"; // Use IPv4 address for the local connection
+const uri = "mongodb://127.0.0.1:27017/myDB";
 const client = new MongoClient(uri);
 
-// Connect to MongoDB
+// Connect to MongoDB and initialize destinations
 async function connectDb() {
     try {
         await client.connect();
         console.log("Connected to database");
+
+        const db = client.db("myDB");
+        const destinationsCollection = db.collection("destinations");
+
+        // Check if collection is empty or does not exist
+        const count = await destinationsCollection.countDocuments();
+        if (count === 0) {
+            console.log("Populating 'destinations' collection...");
+            const destinationsData = JSON.parse(
+                fs.readFileSync(path.join(__dirname, "myDB.destinations.json"), "utf-8")
+            );
+
+            // Transform $oid fields into ObjectId
+            const transformedData = destinationsData.map((destination) => {
+                if (destination._id && destination._id.$oid) {
+                    destination._id = new ObjectId(destination._id.$oid);
+                }
+                return destination;
+            });
+
+            await destinationsCollection.insertMany(transformedData);
+            console.log("'destinations' collection populated successfully.");
+        } else {
+            console.log("'destinations' collection already exists.");
+        }
     } catch (err) {
-        console.error("Error connecting to database:", err);
-        process.exit(1); // Exit the application if MongoDB cannot be connected
+        console.error("Error connecting to database or populating data:", err);
+        process.exit(1);
     }
 }
 
-// Connect to the database once the app starts
 connectDb();
 
-// Access the users collection from the database
-const db = client.db('myDB');
-const usersCollection = db.collection('myCollection');
+// Additional routes and server setup omitted for brevity...
 
+// Access the users collection
+const db = client.db("myDB");
+const usersCollection = db.collection("myCollection");
 // Routes
 
 app.get("/", (req, res) => {
