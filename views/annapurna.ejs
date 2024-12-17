@@ -97,32 +97,6 @@
         <button class="add-to-list btn btn-secondary ml-3" data-destination="Annapurna">Add to Want-to-Go List</button>
         <script src="/scripts.js" defer></script>
     </div>
-
-    <script>
-        // JavaScript to handle "Add to Want-to-Go List" functionality
-        document.getElementById('wanttogo').addEventListener('click', function () {
-            const destination = 'Annapurna Circuit';
-            fetch('/add-to-want-to-go-list', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ destination }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`${destination} has been added to your Want-to-Go List!`);
-                    } else {
-                        alert(`Error: ${data.message}`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An unexpected error occurred.');
-                });
-        });
-    </script>
 </body>
 
 </html>
