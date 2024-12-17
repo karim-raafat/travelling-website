@@ -62,20 +62,26 @@ async function connectDb() {
 
 connectDb();
 
-// Additional routes and server setup omitted for brevity...
-
 // Access the users collection
 const db = client.db("myDB");
 const usersCollection = db.collection("myCollection");
-// Routes
 
+// Routes
 app.get("/", (req, res) => {
     res.render("login");
 });
 
 app.get("/home", (req, res) => {
-    res.render("home");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("home");
+    }
 });
+
 
 app.get("/registration", (req, res) => {
     res.render("registration");
@@ -112,54 +118,122 @@ app.post("/register", async (req, res) => {
 
 
 app.get("/paris", (req, res) => {
-    res.render("paris");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("paris");
+    }
 });
 
+
 app.get("/rome", (req, res) => {
-    res.render("rome");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("rome");
+    }
 });
 
 app.get("/islands", (req, res) => {
-    res.render("islands");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("islands");
+    }
 });
 
 app.get("/hiking", (req, res) => {
-    res.render("hiking");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("hiking");
+    }
 });
 
 app.get("/cities", (req, res) => {
-    res.render("cities");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("cities");
+    }
 });
 
 app.get("/inca", (req, res) => {
-    res.render("inca");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("inca");
+    }
 });
 
 app.get("/annapurna", (req, res) => {
-    res.render("annapurna");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("annapurna");
+    }
 });
 
 app.get("/santorini", (req, res) => {
-    res.render("santorini");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("santorini");
+    }
 });
 
 app.get("/bali", (req, res) => {
-    res.render("bali");
+    if (!req.session.user) {
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("bali");
+    }
 });
 
 app.get("/wanttogo", async (req, res) => {
-
     if (!req.session.user) {
-        return res.redirect("/"); // Redirect to login if user is not logged in
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
     }
 
     try {
+        // Ensure the Mongo client is connected before performing operations
+        await connectDb();
+
         // Retrieve the user's data from the database
         const user = await usersCollection.findOne({ username: req.session.user.username });
 
         // Ensure the user's `list` attribute exists
         const destinations = user.list || [];
-
 
         // Render the template with the destinations
         res.render("wanttogo", { destinations });
@@ -181,7 +255,6 @@ app.post("/", async (req, res) => {
         // Find the user in the database
         const user = await usersCollection.findOne({ username });
 
-
         // Check if user exists and password is correct
         if (!user || user.password !== password) {
             return res.send("Invalid username or password.");
@@ -200,13 +273,14 @@ app.post("/", async (req, res) => {
 
 app.get("/home", (req, res) => {
     if (!req.session.user) {
-        return res.redirect("/login");
+        return res.render("error", {
+            message: "You are not logged in. Please log in first to access this page.",
+            redirectPath: "/",
+        });
+    } else {
+        res.render("home");
     }
-    res.render("home", { user: req.session.user });
 });
-
-
-
 
 //Handling the backend for adding the destination
 app.post("/add-to-want-to-go-list", async (req, res) => {
@@ -244,6 +318,7 @@ app.post("/add-to-want-to-go-list", async (req, res) => {
 });
 
 app.post('/search', async (req, res) => {
+
     const searchQuery = req.body.Search; // Get the search query from the search form textbox
     if (!searchQuery) {
         return res.status(400).send('Search query is required');
@@ -252,12 +327,12 @@ app.post('/search', async (req, res) => {
     try {
         await client.connect(); // Connect to the database
 
-        const db = client.db('myDB'); // Select the database
-        const collection = db.collection('destinations'); // Select the collection
+        const db = client.db('myDB');
+        const collection = db.collection('destinations');
 
         // Perform the search operation
         const results = await collection.find({
-            name: { $regex: searchQuery, $options: 'i' } // Case-insensitive substring match
+            name: { $regex: searchQuery, $options: 'i' } /
         }).toArray();
 
         if (results.length === 0) {
@@ -276,5 +351,4 @@ app.post('/search', async (req, res) => {
 // Start the server
 app.listen(process.env.PORT || 3000, () => {
     console.log("Web Server is listening at port " + (process.env.PORT || 3000));
-
 });
