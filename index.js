@@ -32,13 +32,14 @@ async function connectDb() {
 
         const db = client.db("myDB");
 
-        // Ensure 'myCollection'
-        const myCollection = db.collection("myCollection");
-        const myCollectionCount = await myCollection.countDocuments();
-        if (myCollectionCount === 0) {
-            console.log("Initializing empty 'myCollection'...");
-            await myCollection.insertMany([]); // Ensure collection creation
-            console.log("'myCollection' initialized as an empty collection.");
+        // Ensure 'myCollection' exists
+        const collections = await db.listCollections().toArray();
+        const myCollectionExists = collections.some((collection) => collection.name === "myCollection");
+
+        if (!myCollectionExists) {
+            console.log("Creating 'myCollection' as an empty collection...");
+            await db.createCollection("myCollection"); // Create the collection
+            console.log("'myCollection' created successfully as an empty collection.");
         } else {
             console.log("'myCollection' collection already exists.");
         }
@@ -70,6 +71,7 @@ async function connectDb() {
         process.exit(1);
     }
 }
+
 
 
 connectDb();
