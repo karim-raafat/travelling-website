@@ -24,18 +24,29 @@ app.use(
 const uri = "mongodb://127.0.0.1:27017/myDB";
 const client = new MongoClient(uri);
 
-// Connect to MongoDB and initialize destinations
+// Connect to MongoDB and initialize myCollection and destinations
 async function connectDb() {
     try {
         await client.connect();
         console.log("Connected to database");
 
         const db = client.db("myDB");
-        const destinationsCollection = db.collection("destinations");
 
-        // Check if collection is empty or does not exist
-        const count = await destinationsCollection.countDocuments();
-        if (count === 0) {
+        // Ensure 'myCollection'
+        const myCollection = db.collection("myCollection");
+        const myCollectionCount = await myCollection.countDocuments();
+        if (myCollectionCount === 0) {
+            console.log("Initializing empty 'myCollection'...");
+            await myCollection.insertMany([]); // Ensure collection creation
+            console.log("'myCollection' initialized as an empty collection.");
+        } else {
+            console.log("'myCollection' collection already exists.");
+        }
+
+        // Ensure 'destinations' exists and initialize if empty
+        const destinationsCollection = db.collection("destinations");
+        const destinationsCount = await destinationsCollection.countDocuments();
+        if (destinationsCount === 0) {
             console.log("Populating 'destinations' collection...");
             const destinationsData = JSON.parse(
                 fs.readFileSync(path.join(__dirname, "myDB.destinations.json"), "utf-8")
@@ -59,6 +70,7 @@ async function connectDb() {
         process.exit(1);
     }
 }
+
 
 connectDb();
 
